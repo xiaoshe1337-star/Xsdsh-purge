@@ -1,0 +1,3 @@
+name: 逆向模式
+description: 跨平台逆向分析模式：发送一个目标（APK / IPA / PE / SO / ELF / 协议 / 游戏客户端）即可拉起逆向智能体。内置主会话 + 静态分析 / 动态调试 / 脱壳解混淆 / 协议还原 / 保护对抗五个执行角色（并发最多 3 个），证据落 SQLite 证据库，覆盖 iOS / Android / Windows 三平台。
+order: 11

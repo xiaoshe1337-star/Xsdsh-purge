@@ -1138,6 +1138,8 @@ body:not([data-ds-dark-theme]) .dshp-auth-ops button.primary{background:var(--ds
 .dshp-wall.is-on{border-color:var(--dshp-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--dshp-accent) 40%,transparent)}
 .dshp-wall span{position:absolute;left:0;right:0;bottom:0;padding:2px 4px;font:9px/1.2 var(--dshp-sans);color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.72));text-shadow:0 1px 2px #000}
 .dshp-wall-none{display:grid;place-items:center;color:var(--dshp-mute);font:11px/1 var(--dshp-sans);background:repeating-linear-gradient(45deg,#1a1a1a,#1a1a1a 6px,#222 6px,#222 12px)}
+.dshp-wall video{width:100%;height:100%;object-fit:cover;display:block}
+.dshp-wall-badge{font-style:normal;margin-left:3px;padding:0 3px;border-radius:3px;background:color-mix(in srgb,var(--dshp-accent) 70%,transparent);font-size:8px}
 /* ── 壁纸层：fixed 挂在 body 下，z-index:-2，压在整个 GUI 之后 ──────────── */
 .dshw-layer{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;background-color:#0a0c0e;opacity:1;transition:opacity .45s var(--dshp-ease,cubic-bezier(.16,1,.3,1))}
 .dshw-layer[data-hidden="1"]{opacity:0}
@@ -1151,19 +1153,31 @@ html[data-dshw="1"]{background-color:var(--dshw-underlay,#0a0c0e)}
 `;
 
 // ── 壁纸与液态玻璃 ──────────────────────────────────────────────────────────
-// 壁纸是随包内置的三张，走 host 的静态路由 /purge-wallpapers/<name>.jpg。
+// 壁纸全部随包内置，走 host 的静态路由 /purge-wallpapers/<id>.<ext>。
+// 分静态图与动态视频两类：视频走 <video autoplay loop muted playsinline>，
+// 8 秒无缝循环，1920x1080。
 // 全部状态落在 localStorage，刷新后不丢；壁纸层直接挂 body（z-index:-2），
-// 不参与 dsh-purge 面板的 React 树，避免每次重渲染都重建 <img>。
+// 不参与 dsh-purge 面板的 React 树，避免每次重渲染都重建媒体元素。
 const WALL_KEY = "dshp.wall";
 const GLASS_KEY = "dshp.glass";
+// 与 lib/wallpapers.js 的 WALLPAPERS 保持一致（顺序即 UI 顺序）。
 const WALLPAPERS = [
-	{ id: "terminal-rain", label: "终端雨" },
-	{ id: "hexstream", label: "十六进制" },
-	{ id: "topology", label: "拓扑" },
+	{ id: "neko-aurora", label: "极光", kind: "video", ext: "mp4" },
+	{ id: "neko-ripple", label: "涟漪", kind: "video", ext: "mp4" },
+	{ id: "terminal-rain", label: "终端雨", kind: "image", ext: "jpg" },
+	{ id: "hexstream", label: "十六进制", kind: "image", ext: "jpg" },
+	{ id: "topology", label: "拓扑", kind: "image", ext: "jpg" },
 ];
+const WALL_BY_ID = new Map(WALLPAPERS.map((w) => [w.id, w]));
 
 function wallUrl(id) {
-	return "/purge-wallpapers/" + encodeURIComponent(id) + ".jpg";
+	const hit = WALL_BY_ID.get(id);
+	return "/purge-wallpapers/" + encodeURIComponent(id) + "." + (hit ? hit.ext : "jpg");
+}
+
+function wallKind(id) {
+	const hit = WALL_BY_ID.get(id);
+	return hit ? hit.kind : "image";
 }
 
 function readWallPref() {
@@ -1232,17 +1246,41 @@ function applyWallpaperToDom(pref) {
 		document.body.prepend(layer);
 	}
 
-	let img = layer.querySelector("img");
-	if (!img || img.dataset.wall !== pref.id) {
-		img = document.createElement("img");
-		img.dataset.wall = pref.id;
-		img.alt = "";
-		img.decoding = "async";
-		img.src = wallUrl(pref.id);
-		layer.replaceChildren(img);
+	let media = layer.querySelector("img, video");
+	if (!media || media.dataset.wall !== pref.id) {
+		const kind = wallKind(pref.id);
+		if (kind === "video") {
+			media = document.createElement("video");
+			// muted + playsinline 是自动播放的硬前提：Chromium 只允许静音视频自动播。
+			media.muted = true;
+			media.defaultMuted = true;
+			media.loop = true;
+			media.autoplay = true;
+			media.playsInline = true;
+			media.setAttribute("muted", "");
+			media.setAttribute("playsinline", "");
+			media.setAttribute("disablepictureinpicture", "");
+			media.preload = "auto";
+			media.dataset.wall = pref.id;
+			media.src = wallUrl(pref.id);
+			// 自动播放被拦时（例如省电模式）静默重试一次，失败就停在首帧。
+			const kick = () => {
+				const p = media.play?.();
+				if (p && typeof p.catch === "function") p.catch(() => {});
+			};
+			media.addEventListener("loadeddata", kick, { once: true });
+			kick();
+		} else {
+			media = document.createElement("img");
+			media.dataset.wall = pref.id;
+			media.alt = "";
+			media.decoding = "async";
+			media.src = wallUrl(pref.id);
+		}
+		layer.replaceChildren(media);
 	}
 	layer.style.setProperty("--dshw-opacity", String(pref.opacity));
-	img.style.filter = pref.blur > 0 ? "blur(" + pref.blur + "px)" : "";
+	media.style.filter = pref.blur > 0 ? "blur(" + pref.blur + "px)" : "";
 	scrim.style.setProperty("--dshw-scrim", pref.scrim + "%");
 	root.setAttribute("data-dshw", "1");
 	root.style.setProperty("--dshw-underlay", "#0a0c0e");
@@ -2199,11 +2237,22 @@ function applyWallpaperToDom(pref) {
 								key: wp.id,
 								type: "button",
 								className: "dshp-wall" + (wall.id === wp.id ? " is-on" : ""),
-								title: wp.label,
+								title: wp.label + (wp.kind === "video" ? "（动态）" : ""),
 								onClick: () => setWall((prev) => Object.assign({}, prev, { id: wp.id })),
 							},
-								h("img", { src: wallUrl(wp.id), alt: "", loading: "lazy", decoding: "async" }),
-								h("span", null, wp.label),
+								wp.kind === "video"
+									// 预览也动起来：静音 + 循环 + 内联播放，和壁纸层同一套前提。
+									? h("video", {
+										src: wallUrl(wp.id),
+										muted: true,
+										loop: true,
+										autoplay: true,
+										playsInline: true,
+										preload: "metadata",
+										"aria-hidden": "true",
+									})
+									: h("img", { src: wallUrl(wp.id), alt: "", loading: "lazy", decoding: "async" }),
+								h("span", null, wp.label, wp.kind === "video" ? h("i", { className: "dshp-wall-badge" }, "动态") : null),
 							)),
 						),
 					),

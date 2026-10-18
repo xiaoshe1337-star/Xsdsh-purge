@@ -1,6 +1,6 @@
 {
   "name": "dsh-purge",
-  "version": "1.3.1",
+  "version": "3.0.0",
   "description": "dsh-purge 逆向模式：跨平台逆向分析指挥体系（iOS / Android / Windows），五角色 + 五阶段 + 证据链",
   "type": "module",
   "main": "lib/index.js",

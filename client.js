@@ -263,6 +263,14 @@ window.__ModuleLoader__.load({ id: "dsh-purge", factory: (require) => {
 			"update.source.default": "原作者仓库已停更",
 			"update.source.custom": "自定义源",
 			"update.source.saved": "更新源已改为 {repo}",
+			"look.glass": "液态玻璃",
+			"look.glass.desc": "毛玻璃面板",
+			"look.wall": "壁纸",
+			"look.wall.none": "无",
+			"look.wall.tune": "壁纸调节",
+			"look.wall.opacity": "透明度",
+			"look.wall.blur": "模糊",
+			"look.wall.scrim": "压暗",
 			"metric.version": "版本",
 			"action.apply": "应用",
 			"action.revert": "还原",
@@ -609,6 +617,14 @@ window.__ModuleLoader__.load({ id: "dsh-purge", factory: (require) => {
 			"update.source.default": "Original repo stopped updating",
 			"update.source.custom": "Custom source",
 			"update.source.saved": "Update source set to {repo}",
+			"look.glass": "Liquid glass",
+			"look.glass.desc": "Frosted panels",
+			"look.wall": "Wallpaper",
+			"look.wall.none": "None",
+			"look.wall.tune": "Wallpaper tuning",
+			"look.wall.opacity": "Opacity",
+			"look.wall.blur": "Blur",
+			"look.wall.scrim": "Dim",
 			"metric.version": "Version",
 			"action.apply": "Apply",
 			"action.revert": "Restore",
@@ -1057,7 +1073,180 @@ body:not([data-ds-dark-theme]) .dshp-auth-ops button.primary{background:var(--ds
 .dshp-dock[data-theme="white"] .dshp-dock-body .rt-err{color:#9a3434!important}
 .dshp-dock[data-theme="dusk"] .dshp-dock-body .rt-err{color:#f0b4b4!important}
 .dshp-dock-body .rt-rep-http,.dshp-dock-body pre{background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#fff) 84%,transparent)!important;color:var(--dshp-ink)!important;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1,#888) 60%,transparent)!important}
+/* ── 液态玻璃（Liquid Glass）主题 ─────────────────────────────────────────
+   参照 dsh-wallpaper-engine 的配方：backdrop-filter 三件套
+   blur() + saturate() + brightness()，再叠一层极淡的白色内高光。
+   下面这些规则只在 .dshp-root[data-glass="1"] 下生效，关掉玻璃时一像素不动。 */
+.dshp-root[data-glass="1"]{
+  --dshp-glass-alpha:.42;
+  --dshp-glass-blur:18px;
+  --dshp-glass-sat:1.8;
+  --dshp-glass-bright:1.04;
+  --dshp-paper:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#f6f4ef) calc(var(--dshp-glass-alpha)*100%),transparent);
+  --dshp-line:color-mix(in srgb,#fff calc(var(--dshp-glass-alpha)*26%),transparent)
+}
+.dshp-root[data-glass="1"][data-theme="dusk"]{
+  --dshp-glass-alpha:.34;
+  --dshp-glass-bright:.96;
+  --dshp-paper:color-mix(in srgb,#0b0d10 calc(var(--dshp-glass-alpha)*100%),transparent);
+  --dshp-line:color-mix(in srgb,#fff 14%,transparent)
+}
+/* 玻璃表面：模糊 + 提饱和 + 微增亮，三档明度用 0.9 / 1.0 / 1.15 区分层次 */
+.dshp-root[data-glass="1"] .dshp-card,
+.dshp-root[data-glass="1"] .dshp-panel,
+.dshp-root[data-glass="1"] .dshp-section,
+.dshp-root[data-glass="1"] .dshp-dock,
+.dshp-root[data-glass="1"] .dshp-dock-body,
+.dshp-root[data-glass="1"] .dshp-dock-body .rt-card,
+.dshp-root[data-glass="1"] .dshp-dock-body .rt-pane,
+.dshp-root[data-glass="1"] .dshp-dock-body .rt-side,
+.dshp-root[data-glass="1"] .dshp-dock-body .rt-toolbar{
+  -webkit-backdrop-filter:blur(var(--dshp-glass-blur)) saturate(var(--dshp-glass-sat)) brightness(var(--dshp-glass-bright));
+  backdrop-filter:blur(var(--dshp-glass-blur)) saturate(var(--dshp-glass-sat)) brightness(var(--dshp-glass-bright));
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 30%,transparent),0 8px 32px color-mix(in srgb,#000 18%,transparent);
+  border-color:var(--dshp-line)
+}
+/* 输入框 / 按钮：比卡片低半档，避免整屏都是同一种毛玻璃 */
+.dshp-root[data-glass="1"] input,
+.dshp-root[data-glass="1"] select,
+.dshp-root[data-glass="1"] textarea,
+.dshp-root[data-glass="1"] .dshp-dock-body .rt-input,
+.dshp-root[data-glass="1"] .dshp-dock-body .rt-eng-select,
+.dshp-root[data-glass="1"] .dshp-dock-body textarea.rt-input{
+  background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#fff) calc(var(--dshp-glass-alpha)*66%),transparent)!important;
+  border:1px solid var(--dshp-line)!important;
+  -webkit-backdrop-filter:blur(10px) saturate(1.5);
+  backdrop-filter:blur(10px) saturate(1.5)
+}
+.dshp-root[data-glass="1"] .dshp-dock-body .rt-btn{
+  background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#fff) calc(var(--dshp-glass-alpha)*80%),transparent)!important;
+  -webkit-backdrop-filter:blur(12px) saturate(1.5);
+  backdrop-filter:blur(12px) saturate(1.5);
+  border:1px solid var(--dshp-line)!important
+}
+/* 主按钮保持实色，玻璃里需要一个锚点 */
+.dshp-root[data-glass="1"] .dshp-dock-body .rt-btn-primary{
+  background:var(--dsw-alias-brand-primary,#3f6b52)!important;
+  box-shadow:0 2px 12px color-mix(in srgb,var(--dsw-alias-brand-primary,#3f6b52) 45%,transparent)!important
+}
+/* 玻璃开关与壁纸条 */
+.dshp-glass-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dshp-glass-row label{display:inline-flex;align-items:center;gap:6px;font:12px/1 var(--dshp-sans);color:var(--dshp-mute)}
+.dshp-glass-swatches{display:flex;gap:8px;flex-wrap:wrap}
+.dshp-wall{position:relative;width:76px;height:44px;border-radius:8px;overflow:hidden;border:1px solid var(--dshp-line);cursor:pointer;background:#111;flex:0 0 auto;padding:0}
+.dshp-wall img{width:100%;height:100%;object-fit:cover;display:block}
+.dshp-wall.is-on{border-color:var(--dshp-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--dshp-accent) 40%,transparent)}
+.dshp-wall span{position:absolute;left:0;right:0;bottom:0;padding:2px 4px;font:9px/1.2 var(--dshp-sans);color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.72));text-shadow:0 1px 2px #000}
+.dshp-wall-none{display:grid;place-items:center;color:var(--dshp-mute);font:11px/1 var(--dshp-sans);background:repeating-linear-gradient(45deg,#1a1a1a,#1a1a1a 6px,#222 6px,#222 12px)}
+/* ── 壁纸层：fixed 挂在 body 下，z-index:-2，压在整个 GUI 之后 ──────────── */
+.dshw-layer{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;background-color:#0a0c0e;opacity:1;transition:opacity .45s var(--dshp-ease,cubic-bezier(.16,1,.3,1))}
+.dshw-layer[data-hidden="1"]{opacity:0}
+.dshw-layer img,.dshw-layer video{width:100%;height:100%;object-fit:cover;display:block;opacity:var(--dshw-opacity,1)}
+/* 壁纸取景：位移与缩放用独立属性，避免和过渡的 transform 打架 */
+.dshw-layer{translate:var(--dshw-x,0px) var(--dshw-y,0px);scale:var(--dshw-scale,1.02)}
+/* 暗色蒙版：保证玻璃下面的壁纸不至于把文字顶掉 */
+.dshw-scrim{position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,color-mix(in srgb,#000 var(--dshw-scrim,26%),transparent),color-mix(in srgb,#000 calc(var(--dshw-scrim,26%) * 1.6),transparent))}
+/* 根元素兜底色：整条合成链掉像素时退化成同色，而不是白闪 */
+html[data-dshw="1"]{background-color:var(--dshw-underlay,#0a0c0e)}
 `;
+
+// ── 壁纸与液态玻璃 ──────────────────────────────────────────────────────────
+// 壁纸是随包内置的三张，走 host 的静态路由 /purge-wallpapers/<name>.jpg。
+// 全部状态落在 localStorage，刷新后不丢；壁纸层直接挂 body（z-index:-2），
+// 不参与 dsh-purge 面板的 React 树，避免每次重渲染都重建 <img>。
+const WALL_KEY = "dshp.wall";
+const GLASS_KEY = "dshp.glass";
+const WALLPAPERS = [
+	{ id: "terminal-rain", label: "终端雨" },
+	{ id: "hexstream", label: "十六进制" },
+	{ id: "topology", label: "拓扑" },
+];
+
+function wallUrl(id) {
+	return "/purge-wallpapers/" + encodeURIComponent(id) + ".jpg";
+}
+
+function readWallPref() {
+	try {
+		const raw = localStorage.getItem(WALL_KEY);
+		if (!raw) return { id: "", opacity: 0.9, blur: 0, scrim: 26 };
+		const o = JSON.parse(raw);
+		return {
+			id: typeof o.id === "string" ? o.id : "",
+			opacity: typeof o.opacity === "number" ? Math.min(1, Math.max(0.2, o.opacity)) : 0.9,
+			blur: typeof o.blur === "number" ? Math.min(24, Math.max(0, o.blur)) : 0,
+			scrim: typeof o.scrim === "number" ? Math.min(70, Math.max(0, o.scrim)) : 26,
+		};
+	} catch {
+		return { id: "", opacity: 0.9, blur: 0, scrim: 26 };
+	}
+}
+
+function saveWallPref(pref) {
+	try { localStorage.setItem(WALL_KEY, JSON.stringify(pref)); } catch { /* ignore */ }
+}
+
+function readGlassPref() {
+	try {
+		const raw = localStorage.getItem(GLASS_KEY);
+		return raw === null ? true : raw === "1";
+	} catch {
+		return true;
+	}
+}
+
+function saveGlassPref(on) {
+	try { localStorage.setItem(GLASS_KEY, on ? "1" : "0"); } catch { /* ignore */ }
+}
+
+/**
+ * 同步壁纸层到 DOM。壁纸层不属于 React 树：面板重渲染时不该重挂 <img>，
+ * 否则每敲一个字都会重新解码一张 2560x1440 的图。
+ */
+function applyWallpaperToDom(pref) {
+	if (typeof document === "undefined") return;
+	const root = document.documentElement;
+	let layer = document.querySelector(".dshw-layer");
+	let scrim = document.querySelector(".dshw-scrim");
+
+	if (!pref.id) {
+		layer?.remove();
+		scrim?.remove();
+		root.removeAttribute("data-dshw");
+		root.style.removeProperty("--dshw-underlay");
+		return;
+	}
+
+	if (!layer) {
+		layer = document.createElement("div");
+		layer.className = "dshw-layer";
+		layer.setAttribute("aria-hidden", "true");
+		document.body.prepend(layer);
+	}
+	if (!scrim) {
+		scrim = document.createElement("div");
+		scrim.className = "dshw-scrim";
+		scrim.setAttribute("aria-hidden", "true");
+		document.body.prepend(scrim);
+		// prepend 两次会把 scrim 放到 layer 前面，保证 scrim 在壁纸之上
+		document.body.prepend(layer);
+	}
+
+	let img = layer.querySelector("img");
+	if (!img || img.dataset.wall !== pref.id) {
+		img = document.createElement("img");
+		img.dataset.wall = pref.id;
+		img.alt = "";
+		img.decoding = "async";
+		img.src = wallUrl(pref.id);
+		layer.replaceChildren(img);
+	}
+	layer.style.setProperty("--dshw-opacity", String(pref.opacity));
+	img.style.filter = pref.blur > 0 ? "blur(" + pref.blur + "px)" : "";
+	scrim.style.setProperty("--dshw-scrim", pref.scrim + "%");
+	root.setAttribute("data-dshw", "1");
+	root.style.setProperty("--dshw-underlay", "#0a0c0e");
+}
 
 		function formatSize(bytes) {
 			if (typeof bytes !== "number" || !isFinite(bytes) || bytes < 0) return "0 B";
@@ -1986,6 +2175,61 @@ body:not([data-ds-dark-theme]) .dshp-auth-ops button.primary{background:var(--ds
 							onClick: () => saveSource(sourceRepo.trim()),
 						}, t("update.source.apply")),
 					),
+					h("div", { className: "dshp-source" },
+						h("span", { className: "dshp-source-label" }, t("look.glass")),
+						h("label", { className: "dshp-glass-row" },
+							h("input", {
+								type: "checkbox",
+								checked: glassOn,
+								onChange: (e) => setGlassOn(Boolean(e.target.checked)),
+							}),
+							t("look.glass.desc"),
+						),
+					),
+					h("div", { className: "dshp-source" },
+						h("span", { className: "dshp-source-label" }, t("look.wall")),
+						h("div", { className: "dshp-glass-swatches" },
+							h("button", {
+								type: "button",
+								className: "dshp-wall dshp-wall-none" + (wall.id ? "" : " is-on"),
+								title: t("look.wall.none"),
+								onClick: () => setWall((prev) => Object.assign({}, prev, { id: "" })),
+							}, h("span", null, t("look.wall.none"))),
+							WALLPAPERS.map((wp) => h("button", {
+								key: wp.id,
+								type: "button",
+								className: "dshp-wall" + (wall.id === wp.id ? " is-on" : ""),
+								title: wp.label,
+								onClick: () => setWall((prev) => Object.assign({}, prev, { id: wp.id })),
+							},
+								h("img", { src: wallUrl(wp.id), alt: "", loading: "lazy", decoding: "async" }),
+								h("span", null, wp.label),
+							)),
+						),
+					),
+					wall.id ? h("div", { className: "dshp-source" },
+						h("span", { className: "dshp-source-label" }, t("look.wall.tune")),
+						h("label", { className: "dshp-glass-row" },
+							h("span", null, t("look.wall.opacity")),
+							h("input", {
+								type: "range", min: 20, max: 100, step: 5,
+								value: Math.round(wall.opacity * 100),
+								onChange: (e) => setWall((prev) => Object.assign({}, prev, { opacity: Number(e.target.value) / 100 })),
+							}),
+							h("span", null, t("look.wall.blur")),
+							h("input", {
+								type: "range", min: 0, max: 24, step: 1,
+								value: wall.blur,
+								onChange: (e) => setWall((prev) => Object.assign({}, prev, { blur: Number(e.target.value) })),
+							}),
+							h("span", null, t("look.wall.scrim")),
+							h("input", {
+								type: "range", min: 0, max: 70, step: 2,
+								value: wall.scrim,
+								onChange: (e) => setWall((prev) => Object.assign({}, prev, { scrim: Number(e.target.value) })),
+							}),
+						),
+					) : null,
 					noticeNode(updateNotice),
 				),
 				s ? h("div", { className: "dshp-metrics" },
@@ -2865,6 +3109,17 @@ body:not([data-ds-dark-theme]) .dshp-auth-ops button.primary{background:var(--ds
 		function SettingsRoot(props) {
 			const t = typeof props.t === "function" ? props.t : ((key) => key);
 			const [theme, setTheme] = useState(readTheme);
+			const [glassOn, setGlassOn] = useState(readGlassPref);
+			const [wall, setWall] = useState(readWallPref);
+			// 壁纸层 / 玻璃开关的落盘与 DOM 同步集中在这里，
+			// 面板里所有控件只改 state，不直接碰 localStorage。
+			useEffect(() => {
+				saveWallPref(wall);
+				applyWallpaperToDom(wall);
+			}, [wall]);
+			useEffect(() => {
+				saveGlassPref(glassOn);
+			}, [glassOn]);
 			useEffect(() => {
 				let cancelled = false;
 				let timer = 0;
@@ -2895,7 +3150,7 @@ body:not([data-ds-dark-theme]) .dshp-auth-ops button.primary{background:var(--ds
 				};
 			}, []);
 			translate = t;
-			return h("div", { className: "dshp-root", "data-theme": theme },
+			return h("div", { className: "dshp-root", "data-theme": theme, "data-glass": glassOn ? "1" : "0" },
 				h("style", null, PURGE_CSS),
 				h(PurgifySection, null),
 				h(RulesSection, null),

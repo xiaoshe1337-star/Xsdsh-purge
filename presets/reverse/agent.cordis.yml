@@ -23,7 +23,12 @@
 # ── identity ────────────────────────────────────────────────────────────────
 
 # The preset's own persona, shadowing the deployment default for this agent.
-# `{{model}}` and `{{cwd}}` resolve from the agent's own route and workspace.
+# Only `{{provider}}` and `{{model}}` are registered prompt variables in
+# dsh 0.2.1-rc.2 (agentLoop registers exactly those two). Anything else in a
+# `{{...}}` group makes the whole turn fail with "unknown prompt variable".
+# The working directory is NOT a variable — it already arrives through the
+# runtime-context snapshot (CONTEXT_ORDERS.WORKING_DIRECTORY), so don't
+# restate it here with `{{cwd}}`.
 - id: persona
   name: '@deepseek-ai/dsh-persona'
   config:
@@ -145,7 +150,10 @@
       - **样本哈希必须记录**：同一份样本的所有结论都挂在它的哈希下面，不同版本不能混。
       - 报告只收录有证据的结论，且每条要能复现（目标 → 拿到什么 → 怎么拿到的（命令/脚本）→ 原始产物路径）。
 
-    suffix: Your working directory is {{cwd}}.
+    # 不写 suffix：工作目录由运行时上下文快照提供（CONTEXT_ORDERS.WORKING_DIRECTORY）。
+    # 写 「Your working directory is {{cwd}}.」 会直接报
+    # unknown prompt variable "{{cwd}}" in section "deployment:persona-suffix"。
+    suffix: ""
 
 # 锚点门：bootstrap 阶段限输出，避免首轮空转；指挥端会先连打 preflight/开目标/读技能，1024 易截断。
 # 不裁工具、不换人设。压缩后再关一次。放开后工作区长说明改成点名文件。
